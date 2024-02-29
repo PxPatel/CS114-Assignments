@@ -21,7 +21,7 @@ public class AtoY {
      * (row,col)
      * The grid may already have some characters which should not be changed
      * 
-     * @param t grid
+     * @param t                      grid
      * @param row
      * @param col
      * @param ch
@@ -62,6 +62,20 @@ public class AtoY {
                 } else {
                     t[newRow][newCol] = 'z';
                 }
+            }
+        }
+
+        for (int i = 0; i < (allowDiagonalNeighbors ? movementMatrix.length : movementMatrix.length / 2); i++) {
+            int[] movement = movementMatrix[i];
+            int newRow = row + movement[0];
+            int newCol = col + movement[1];
+
+            if (newRow > 4 || newCol > 4 || newRow < 0 || newCol < 0) {
+                continue;
+            }
+
+            else if (t[newRow][newCol] == nextChar) {
+                return solve(t, newRow, newCol, nextChar, allowDiagonalNeighbors);
             }
         }
 
