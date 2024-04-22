@@ -12,7 +12,7 @@ import javax.swing.JPanel;
 /**
  * A class to test Maze.java.
  * @author Koffman and Wolfgang
- * Modified by Ravi Varadarajan for CS114
+ * Modified by Ravi Varadarajan for CS 114
  */
 public class MazeTest extends JFrame {
 
@@ -34,13 +34,20 @@ public class MazeTest extends JFrame {
         getContentPane().add(aGrid, BorderLayout.CENTER);
         JTextArea instruct = new JTextArea(2, 20);
         instruct.setText("Toggle a button to change its color"
-                + "\nPress SOLVE when ready");
+                + "\nPress SOLVE or SOLVE_SHORTEST when ready");
         getContentPane().add(instruct, BorderLayout.NORTH);
         JButton solveButton = new JButton("SOLVE");
         solveButton.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent e) {
-                solve();
+                solve(false);
+            }
+        });
+        JButton solveShortestButton = new JButton("SOLVE_SHORTEST");
+        solveShortestButton.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+                solve(true);
             }
         });
         JButton resetButton = new JButton("RESET");
@@ -52,6 +59,7 @@ public class MazeTest extends JFrame {
         });
         JPanel bottomPanel = new JPanel();
         bottomPanel.add(solveButton);
+        bottomPanel.add(solveShortestButton);
         bottomPanel.add(resetButton);
         getContentPane().add(bottomPanel, BorderLayout.SOUTH);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -59,7 +67,7 @@ public class MazeTest extends JFrame {
         setVisible(true);
     }
 
-    public void solve() {
+    public void solve(boolean shortestPath) {
         Maze m = new Maze(theGrid);
         m.restoreMaze();
         String reply = JOptionPane.showInputDialog("Enter start cell as col,row (skip for 0,0)");
@@ -81,11 +89,20 @@ public class MazeTest extends JFrame {
             destCol = Integer.parseInt(toks[0].trim());
             destRow = Integer.parseInt(toks[1].trim());
         }
-        boolean found = m.findMazePath(startCol, startRow, destCol, destRow);
-        if (found) {
-            JOptionPane.showMessageDialog(null, "Success ! path shown in green; reset maze for another trial");
+        if (shortestPath) {
+            boolean found = m.findMazeShortestPath(startCol, startRow, destCol, destRow);
+            if (found) {
+                JOptionPane.showMessageDialog(null, "Success ! shortest path shown in green; solve or reset maze for another trial");
+            } else {
+                JOptionPane.showMessageDialog(null, "No path - solve or reset maze and try again");
+            }
         } else {
-            JOptionPane.showMessageDialog(null, "No path - reset maze and try again");
+            boolean found = m.findMazePath(startCol, startRow, destCol, destRow);
+            if (found) {
+                JOptionPane.showMessageDialog(null, "Success ! path shown in green; solve or reset maze for another trial");
+            } else {
+                JOptionPane.showMessageDialog(null, "No path - reset maze and try again");
+            }
         }
     }
 }

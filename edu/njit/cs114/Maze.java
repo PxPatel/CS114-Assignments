@@ -1,6 +1,8 @@
 package edu.njit.cs114;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Stack;
 
 /**
  * Class that solves maze problems with backtracking.
@@ -8,9 +10,6 @@ import java.awt.*;
  * @author Koffman and Wolfgang
  *         Modified by Ravi Varadarajan for CS 114
  **/
-
-// Completed by Priyansh Patel
-// During class on 2/1/24
 public class Maze {
 
     public static Color PATH = Color.green;
@@ -22,6 +21,32 @@ public class Maze {
     private TwoDimGrid maze;
 
     private int cnt;
+
+    private static class Cell {
+        public final int col, row;
+
+        public Cell(int col, int row) {
+            this.col = col;
+            this.row = row;
+        }
+
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Cell)) {
+                return false;
+            }
+            Cell other = (Cell) obj;
+            return this.row == other.row && this.col == other.col;
+        }
+
+        public String toString() {
+            return "(" + col + "," + row + ")";
+        }
+    }
+
+    private static boolean inStack(Stack<Cell> pathStack, int col, int row) {
+        Cell target = new Cell(col, row);
+        return pathStack.contains(target);
+    }
 
     public Maze(TwoDimGrid m) {
         maze = m;
@@ -88,6 +113,88 @@ public class Maze {
         }
 
         return isOnPath;
+
+    }
+
+    /* Wrapper method for finding shortest path **/
+    public boolean findMazeShortestPath(int startCol, int startRow, int destCol, int destRow) {
+        Stack<Cell> pathStack = new Stack<>();
+        pathStack.push(new Cell(startCol, startRow));
+        ArrayList<Cell> shortestPath = findMazeShortestPathAux(startCol, startRow,
+                destCol, destRow, pathStack);
+        int cnt = 0;
+        if (!shortestPath.isEmpty()) {
+            for (Cell cell : shortestPath) {
+                maze.recolor(cell.col, cell.row, PATH);
+                maze.setLabel(cell.col, cell.row, "" + cnt);
+                cnt++;
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Attempts to find shortest path through point (x, y).
+     *
+     * @pre Possible path cells are initially in NON_BACKGROUND color
+     * @post If a path is found, all cells on it are set to the PATH color; all
+     *       cells that were visited but are not on the path are in the TEMPORARY
+     *       color.
+     * @param x
+     *                  The x-coordinate of current point
+     * @param y
+     *                  The y-coordinate of current point
+     * @param pathStack
+     *                  Stack that contains the current path found so far
+     * @return If a path through (x, y) is found return shortest path; otherwise,
+     *         return empty path
+     */
+    public ArrayList<Cell> findMazeShortestPathAux(int x, int y, int destCol, int destRow,
+            Stack<Cell> pathStack) {
+        if (y >= maze.getNRows() || x >= maze.getNCols() || x < 0 || y < 0 ||
+                maze.getColor(x, y) == BACKGROUND) {
+            return new ArrayList<>();
+        }
+
+        if (x == destCol && y == destRow) {
+            return new ArrayList<>(pathStack);
+        }
+
+        maze.recolor(x, y, TEMPORARY);
+        ArrayList<Cell> shortestPath = new ArrayList<>();
+
+        int[][] movementMatrix = {
+                { 1, 0 },
+                { 0, 1 },
+                { -1, 0 },
+                { 0, -1 }
+        };
+
+        for (int i = 0; i < movementMatrix.length; i++) {
+
+            int[] movement = movementMatrix[i];
+            int newX = x + movement[0];
+            int newY = y + movement[1];
+
+            if (!pathStack.contains(new Cell(newX, newY))) {
+
+                pathStack.push(new Cell(newX, newY));
+
+                ArrayList<Cell> newPath = findMazeShortestPathAux(newX, newY, destCol, destRow,
+                        pathStack);
+
+                pathStack.pop();
+
+                if (!newPath.isEmpty() && (shortestPath.isEmpty() || newPath.size() < shortestPath.size())) {
+                    shortestPath = newPath;
+                }
+
+            }
+        }
+
+        return shortestPath;
 
     }
 
